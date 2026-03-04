@@ -1,0 +1,505 @@
+{
+  "name": "My CRM System",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2080,
+        64
+      ],
+      "id": "6afe521c-3067-4164-ac15-0cfcf662fd0c",
+      "name": "Telegram Trigger",
+      "webhookId": "35687d3b-b2ef-4ae6-83e3-6a49da8f0230",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "V1mzrdgQu1TRRB7I",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output.split(/\\{|```json/)[0].replace(/\\*|_|`/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1504,
+        -32
+      ],
+      "id": "af17917a-d8c2-465f-90c5-c3934c77c097",
+      "name": "Send a text message",
+      "webhookId": "7d5926ad-5fbc-4f08-92d8-28903f22da5d",
+      "credentials": {
+        "telegramApi": {
+          "id": "V1mzrdgQu1TRRB7I",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "1. الهوية والهدف (Identity):\nأنت مهندس ديكور خبير واستشاري مبيعات. هدفك هو مساعدة العميل في تخيل منزله وتأهيله تقنياً قبل إرساله للمهندسين. تحدث بلهجة مصرية مهنية وودودة.\n\n2. قواعد الحوار (Conversation Rules):\n\nالاسم أولاً: في أول ظهور لك، رحب بالعميل واسأله عن اسمه بلطف (مثال: \"أهلاً بك في [اسم شركتك]، ممكن أعرف الاسم الكريم عشان أتشرف بحضرتك؟\"). لا تطلب تفاصيل أخرى قبل معرفة الاسم.\n\nالذكاء في الأسئلة: لا تسأل كل شيء مرة واحدة. اسأل سؤالاً واحداً أو اثنين بحد أقصى في كل رد (مثال: اسأل عن الاستايل، ثم في الرد التالي اسأل عن المساحة، وهكذا).\n\nالتعمق التقني: إذا اختار العميل \"مودرن\"، اسأله عن تفاصيل (خشب، رخام، إضاءة) لتبدو خبيراً وتجمع بيانات دقيقة للمهندسين.\n\nرقم التليفون: اطلب رقم التليفون فقط عندما تشعر أن العميل مهتم فعلاً، لغرض \"تحديد موعد معاينة\" أو \"إرسال المقايسة\".\n\n3. تنسيق البيانات المخفي (Output Format):\nيجب أن ينتهي كل رد بـ JSON مخفي يحتوي على آخر تحديث للبيانات. إذا لم تتوفر معلومة، اتركها فارغة. التنسيق الإلزامي هو:\n\nJSON\n{\n  \"project_type\": \"نوع المشروع\",\n  \"site\": \"الموقع\",\n  \"budget\": \"الميزانية كرقـم\",\n  \"summary\": \"ملخص فني قصير جداً\",\n  \"notes\": \"اسم العميل + أي ملاحظات عن ذوقه\",\n  \"phone\": \"رقم التليفون\",\n  \"status\": \"حالة العميل (قيد التأهيل / مهتم / موعد معاينة)\"\n}\n\n\"عندما تنتهي من جمع كل البيانات (الاسم، الرقم، الموقع، الميزانية، نوع المشروع)، توقف عن طرح الأسئلة، وأخبر العميل أنك قمت بتحويل ملفه للمهندس المختص وسيتواصل معه خلال دقائق، وقم فوراً بتغيير خانة الـ status في الـ JSON إلى موعد معاينة.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1856,
+        64
+      ],
+      "id": "6aa74744-75a5-48cc-8cb6-b3bee7b27285",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        288
+      ],
+      "id": "1cee6c2d-8b86-4052-abc5-d60dd1bc032b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "ZJQXhlgH7CKwLMe8",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1728,
+        288
+      ],
+      "id": "c25ef655-9ffa-45b1-a211-35f85c1f4710",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiOutput = items[0].json.output;\nconst jsonMatch = aiOutput.match(/\\{[\\s\\S]*\\}/);\nlet data = {};\n\nif (jsonMatch) {\n  try {\n    data = JSON.parse(jsonMatch[0]);\n  } catch (e) {\n    data = { \"error\": \"JSON parse failed\" };\n  }\n}\n\nconst textReply = aiOutput.replace(/\\{[\\s\\S]*\\}/, '').trim();\n\nreturn [{\n  json: {\n    customer_reply: textReply,\n    project_type: data.project_type || \"\",\n    site: data.site || \"\",\n    budget: data.budget || 0,\n    summary: data.summary || \"\",\n    notes: data.notes || \"\",\n    phone: data.phone || \"\",\n    // هنا ضفنا الحالة: لو الـ AI بعتها هناخدها، لو مبعتهاش هنخليها \"قيد التأهيل\" كبداية\n    status: data.status || \"قيد التأهيل\" \n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        160
+      ],
+      "id": "dcd41b09-36fa-45d1-9163-917eac2d1520",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appFPD74APlySi2we",
+          "mode": "list",
+          "cachedResultName": "Project CRM",
+          "cachedResultUrl": "https://airtable.com/appFPD74APlySi2we"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblkyV6jT65zyJiVG",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appFPD74APlySi2we/tblkyV6jT65zyJiVG"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Budget": "={{ $json.budget }}",
+            "Phone Number": "={{ $json.phone }}",
+            "Customer Name": "={{ $('Telegram Trigger').item.json.message.chat.first_name }} {{ $('Telegram Trigger').item.json.message.chat.last_name }}",
+            "Project type": "={{ $json.project_type }}",
+            "Summary": "={{ $json.summary }}",
+            "Notes": "={{ $json.notes }}",
+            "site": "={{ $json.site }}",
+            "Status": "={{ $json.status }}"
+          },
+          "matchingColumns": [
+            "Phone Number"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Project type",
+              "displayName": "Project type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "site",
+              "displayName": "site",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1056,
+        160
+      ],
+      "id": "0451de87-98b4-4197-bd77-65252824fea1",
+      "name": "Create or update a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "s1MSF08qPeHCVm5Y",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "426b8289-a9b9-4d51-982f-426c9977f5a5",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -1280,
+        160
+      ],
+      "id": "5c8af648-ae2f-4551-afb6-75db4cc9fcd6",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "14f3c07e-c6ca-4c54-8a33-a8e963974e15",
+              "leftValue": "={{ $json.fields.Status }}",
+              "rightValue": "موعد معاينة",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -848,
+        160
+      ],
+      "id": "2baa93ce-1510-4569-8ad8-7f7ff00eb40d",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {
+        "chatId": "-5242162906",
+        "text": "=🚨 إخطار عميل جديد جاهز للمعاينة 🚨 👤 الاسم: {{ $node[\"Code in JavaScript\"].json.notes }} 📞 رقم التليفون: {{ $node[\"Code in JavaScript\"].json.phone }} 🏗️ نوع المشروع: {{ $node[\"Code in JavaScript\"].json.project_type }} 📍 الموقع: {{ $node[\"Code in JavaScript\"].json.site }} 💰 الميزانية التقديرية: {{ $node[\"Code in JavaScript\"].json.budget }} 📝 ملخص الطلب: {{ $node[\"Code in JavaScript\"].json.summary }} 📌 الحالة: {{ $node[\"Code in JavaScript\"].json.status }} يا شباب، العميل ده استكمل بياناته وجاهز للمكالمة الآن.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        160
+      ],
+      "id": "c2668643-c57d-4911-af06-51c9cb590148",
+      "name": "Send a text message1",
+      "webhookId": "c6efa0d3-f49d-4088-8ee1-090922e1dd31",
+      "credentials": {
+        "telegramApi": {
+          "id": "V1mzrdgQu1TRRB7I",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "About this Workflow\nHow it works\nThis automated system acts as an AI Interior Design Consultant. It interacts with potential clients via Telegram, qualifies their needs through natural conversation, and automatically structures their data into a professional CRM.\n\nEngagement: The AI Agent initiates a friendly conversation, asking for the client's name and project details.\n\nData Extraction: A custom JavaScript engine parses the AI's response to extract structured JSON data (Style, Location, Budget, Phone).\n\nDatabase Integration: It performs an \"Upsert\" operation in Airtable, ensuring each client has a single, updated record based on their phone number.\n\nHuman Handoff: Once the client is fully qualified, the system automatically alerts the human sales team via a private Telegram group with a full lead report.\n\nFeatures\nNatural Language Processing: Powered by Groq/OpenAI for a human-like consultation experience.\n\nSmart Qualification: Categorizes leads based on their interest level and budget.\n\nCRM Automation: Real-time synchronization with Airtable to eliminate manual data entry.\n\nLead Protection: Built-in filters to ensure only valid leads with phone numbers reach the sales team.\n\nMemory Management: Maintains conversation context to remember user preferences throughout the chat.\n\nCustomize it!\nMulti-Platform: Can be easily adapted for WhatsApp or Instagram DM.\n\nPortfolio Integration: Can be set to automatically send a PDF portfolio once a style is selected.\n\nScheduling: Integration with Calendly to book site visits directly through the bot.",
+        "height": 944,
+        "width": 400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2896,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "40153780-d1f4-40bf-98b6-9affec5ca405",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Setup & Configuration Guide\nPrerequisites\nBefore deploying this workflow, ensure you have the following accounts ready:\n\nn8n Instance: (Self-hosted or Cloud).\n\nTelegram Bot: Created via @BotFather.\n\nAirtable Account: A base with a table containing fields for (Name, Phone, Style, Site, Budget, Status).\n\nAI Provider API Key: (Groq, OpenAI, or Anthropic).\n\nStep-by-Step Installation\n1. Telegram Trigger Setup\n\nCreate your bot on Telegram and copy the API Token.\n\nIn n8n, create a new Telegram Credential and paste the token.\n\nUpdate the Chat ID in the \"Send Message\" nodes to match your target recipients.\n\n2. AI Agent Configuration\n\nConnect your Chat Model node (e.g., Groq) using your API Key.\n\nEnsure the Window Buffer Memory is connected to keep the conversation context.\n\nReview the System Message to customize the AI's \"vibe\" or language.\n\n3. Database Connection (Airtable)\n\nCreate a Personal Access Token in Airtable with data.records:write permissions.\n\nIn the Upsert Node, select your Base and Table.\n\nCrucial: Ensure the \"Phone Number\" column in Airtable is set as the Match Column.\n\n4. Human Handoff (Staff Group)\n\nAdd your Bot to your internal staff group.\n\nPromote the Bot to Administrator.\n\nUse a bot like @GetIDsBot to find the Group's Chat ID (usually starts with -100).\n\nPaste this ID into the Staff Notification Telegram node.\n\nTesting the Flow\nClick \"Execute Workflow\" in n8n.\n\nSend \"Hi\" to your bot on Telegram.\n\nComplete the full sequence (Name -> Style -> Phone).\n\nVerify that a new record appears in Airtable and a notification is sent to the Staff Group.",
+        "height": 928,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2480,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "6400df8e-bc0d-4188-87a1-448cb2cb93c2",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a record": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Create or update a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "48208e71-9a36-41c3-872b-d593bd602ddf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0ada0f9240cf3d697eea596678c688de141377a878804a540b165188e41b4b05"
+  },
+  "id": "HFzA5HKHbC5scDNp",
+  "tags": []
+}
